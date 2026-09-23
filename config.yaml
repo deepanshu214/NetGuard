@@ -1,0 +1,42 @@
+# NetGuard Configuration File
+# Tune thresholds and settings without modifying source code
+
+capture:
+  interface: "auto"        # "auto" picks the default active NIC; or specify "lo0", "en0", etc.
+  bpf_filter: "ip or ip6"  # Kernel-level BPF filter to drop irrelevant traffic
+  queue_maxsize: 10000     # Maximum pending packets in queue before dropping
+
+detection:
+  port_scan:
+    enabled: true
+    time_window_seconds: 3.0    # Time window to count ports
+    unique_port_threshold: 15   # Trigger if source targets >= 15 unique destination ports
+    severity: "HIGH"
+
+  syn_flood:
+    enabled: true
+    time_window_seconds: 2.0    # Window to measure SYN vs SYN-ACK
+    syn_threshold: 50           # Minimum SYN packets required to trigger
+    syn_ack_ratio_threshold: 4.0 # SYN:SYN-ACK ratio threshold
+    half_open_timeout: 5.0      # Half-open connection timeout
+    severity: "CRITICAL"
+
+  rst_abuse:
+    enabled: true
+    time_window_seconds: 5.0    # Window to count RST/FIN packets
+    threshold: 10               # Minimum RST/FIN packets to trigger
+    target_ports: [22, 80, 443, 3389, 8080] # Sensitive service ports monitored
+    severity: "MEDIUM"
+
+alerts:
+  cooldown_seconds: 10.0        # Cooldown per (attack_type, src_ip) to prevent UI flooding
+  whitelist_ips:
+    - "127.0.0.1"               # Localhost loopback
+    - "::1"
+  db_path: "netguard.db"        # SQLite database path for persistent alert storage
+  max_tracked_sources: 10000    # LRU memory ceiling to prevent spoofing memory exhaustion
+
+web:
+  host: "127.0.0.1"
+  port: 5050
+  metrics_push_interval: 1.0    # 1 Hz WebSocket metrics push
