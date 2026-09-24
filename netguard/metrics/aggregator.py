@@ -87,6 +87,19 @@ class MetricsAggregator:
             q_size = self.queue_size_supplier() if self.queue_size_supplier else 0
             drop_count = self.drop_count_supplier() if self.drop_count_supplier else 0
 
+            # Calculate average packet size (bytes) in this interval
+            avg_size = int(self.interval_bytes / max(1, self.interval_packets))
+
+            # Dynamic Statistical Baseline Corridor (rolling mean + 2*sigma)
+            if len(self.history) >= 5:
+                recent_pps = [s.pps for s in list(self.history)[-30:]]
+                mean_pps = sum(recent_pps) / len(recent_pps)
+                variance = sum((x - mean_pps) ** 2 for x in recent_pps) / len(recent_pps)
+                std_pps = variance ** 0.5
+                baseline_upper = int(mean_pps + (2.0 * max(6.0, std_pps)))
+            else:
+                baseline_upper = max(50, int(pps * 1.6))
+
             snapshot = MetricSnapshot(
                 ts=current_time,
                 pps=pps,
@@ -98,6 +111,8 @@ class MetricsAggregator:
                 top_talkers=sorted_talkers,
                 queue_size=q_size,
                 drop_count=drop_count,
+                avg_packet_size=avg_size,
+                baseline_upper_pps=baseline_upper,
             )
 
             # Store in ring buffer
@@ -117,6 +132,17 @@ class MetricsAggregator:
                 pass
 
         return snapshot
+
+    def reset_counters(self):
+        """Resets cumulative packet and byte totals (useful for session resets)."""
+        with self._lock:
+            self.total_packets = 0
+            self.total_bytes = 0
+            self.interval_packets = 0
+            self.interval_bytes = 0
+            self.protocol_counts.clear()
+            self.ip_traffic.clear()
+            self.history.clear()
 
     def get_history(self) -> List[Dict[str, Any]]:
         """Returns the past 60 seconds of metric snapshots for chart pre-filling."""

@@ -96,6 +96,8 @@ class MetricSnapshot:
     active_flows_count: int = 0    # Current active TCP connections
     queue_size: int = 0            # Packets currently queued in buffer
     drop_count: int = 0            # Dropped packets due to buffer overflow
+    avg_packet_size: int = 0       # Average bytes per packet in this interval
+    baseline_upper_pps: int = 0    # Dynamic statistical ceiling (mean + 2*sigma)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

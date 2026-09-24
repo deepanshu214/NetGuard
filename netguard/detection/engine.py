@@ -12,6 +12,9 @@ from netguard.detection.base import BaseDetector
 from netguard.detection.port_scan import PortScanDetector
 from netguard.detection.rst_abuse import RstAbuseDetector
 from netguard.detection.syn_flood import SynFloodDetector
+from netguard.detection.udp_flood import UdpFloodDetector
+from netguard.detection.icmp_flood import IcmpFloodDetector
+from netguard.detection.dns_tunneling import DnsTunnelingDetector
 from netguard.models import Alert, PacketEvent
 
 logger = logging.getLogger("netguard.detection")
@@ -67,6 +70,34 @@ class DetectionEngine:
         )
         self.detectors.append(self.rst_abuse_detector)
 
+        # 4. UDP Flood Detector
+        self.udp_flood_detector = UdpFloodDetector(
+            time_window_seconds=3.0,
+            threshold=40,
+            severity="HIGH",
+            enabled=True,
+        )
+        self.detectors.append(self.udp_flood_detector)
+
+        # 5. ICMP Flood Detector
+        self.icmp_flood_detector = IcmpFloodDetector(
+            time_window_seconds=3.0,
+            threshold=30,
+            severity="MEDIUM",
+            enabled=True,
+        )
+        self.detectors.append(self.icmp_flood_detector)
+
+        # 6. DNS Tunneling & Exfiltration Detector
+        self.dns_tunneling_detector = DnsTunnelingDetector(
+            time_window_seconds=4.0,
+            query_threshold=15,
+            min_payload_len=90,
+            severity="HIGH",
+            enabled=True,
+        )
+        self.detectors.append(self.dns_tunneling_detector)
+
     def process_packet(self, event: PacketEvent, now: Optional[float] = None) -> List[Alert]:
         """Runs the packet event through all enabled detectors."""
         all_alerts: List[Alert] = []
@@ -102,6 +133,10 @@ class DetectionEngine:
             self.rst_abuse_detector.threshold = int(updates["rst_threshold"])
         if "rst_window" in updates:
             self.rst_abuse_detector.time_window = float(updates["rst_window"])
+        if "udp_threshold" in updates:
+            self.udp_flood_detector.threshold = int(updates["udp_threshold"])
+        if "icmp_threshold" in updates:
+            self.icmp_flood_detector.threshold = int(updates["icmp_threshold"])
         return self.get_config_dict()
 
     def get_config_dict(self) -> dict:
@@ -122,5 +157,20 @@ class DetectionEngine:
                 "window_s": self.rst_abuse_detector.time_window,
                 "target_ports": list(self.rst_abuse_detector.target_ports),
                 "enabled": self.rst_abuse_detector.enabled,
+            },
+            "udp_flood": {
+                "threshold": self.udp_flood_detector.threshold,
+                "window_s": self.udp_flood_detector.time_window_seconds,
+                "enabled": self.udp_flood_detector.enabled,
+            },
+            "icmp_flood": {
+                "threshold": self.icmp_flood_detector.threshold,
+                "window_s": self.icmp_flood_detector.time_window_seconds,
+                "enabled": self.icmp_flood_detector.enabled,
+            },
+            "dns_tunneling": {
+                "threshold": self.dns_tunneling_detector.query_threshold,
+                "window_s": self.dns_tunneling_detector.time_window,
+                "enabled": self.dns_tunneling_detector.enabled,
             },
         }

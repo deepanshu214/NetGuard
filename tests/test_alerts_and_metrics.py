@@ -87,7 +87,10 @@ def test_alert_manager_persistence_and_cooldown():
 
     finally:
         if os.path.exists(db_path):
-            os.remove(db_path)
+            try:
+                os.remove(db_path)
+            except (PermissionError, OSError):
+                pass
 
 
 def test_metrics_aggregator_snapshot_and_history():

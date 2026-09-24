@@ -74,7 +74,10 @@ def test_client():
         yield client
 
     if os.path.exists(db_path):
-        os.remove(db_path)
+        try:
+            os.remove(db_path)
+        except (PermissionError, OSError):
+            pass
 
 
 def test_health_endpoint(test_client):

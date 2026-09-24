@@ -31,6 +31,8 @@ def create_app(
     detection_engine=None,
     packet_buffer_supplier=None,
     email_notifier: Optional[EmailNotifier] = None,
+    device_tracker=None,
+    rate_controller=None,
 ) -> tuple[Flask, SocketIO]:
     """
     Creates and configures the Flask application and Flask-SocketIO instance.
@@ -56,6 +58,27 @@ def create_app(
     # --------------------------------------------------------------------------
     # REST API Endpoints
     # --------------------------------------------------------------------------
+    @app.route("/api/devices", methods=["GET"])
+    def get_devices():
+        """Returns inventory of all communicating hosts."""
+        limit = int(request.args.get("limit", 50))
+        devices = device_tracker.get_devices(limit=limit) if device_tracker else []
+        return jsonify({"count": len(devices), "devices": devices})
+
+    @app.route("/api/firewall/rule", methods=["POST"])
+    def generate_firewall_rule():
+        """Generates OS-specific firewall block commands."""
+        data = request.get_json() or {}
+        ip = data.get("ip", "").strip()
+        if not ip:
+            return jsonify({"error": "IP address required"}), 400
+        return jsonify({
+            "ip": ip,
+            "linux": f"sudo iptables -A INPUT -s {ip} -j DROP",
+            "windows": f'netsh advfirewall firewall add rule name="NetGuard_Block_{ip}" dir=in action=block remoteip={ip}',
+            "macos": f"sudo pfctl -t blocklist -T add {ip}",
+        })
+
     @app.route("/api/health", methods=["GET"])
     def health():
         uptime = round(time.time() - start_time, 1)
@@ -98,6 +121,12 @@ def create_app(
     def get_metrics_history():
         history = metrics_aggregator.get_history()
         return jsonify({"count": len(history), "history": history})
+
+    @app.route("/api/metrics/reset", methods=["POST"])
+    def reset_metrics():
+        """Resets cumulative packet and volume counters for a fresh demo run."""
+        metrics_aggregator.reset_counters()
+        return jsonify({"status": "reset", "message": "Session metrics reset successfully."})
 
     @app.route("/api/config", methods=["GET"])
     def get_configuration():
@@ -160,6 +189,32 @@ def create_app(
                 "Content-Length": str(len(pcap_data)),
             },
         )
+
+    @app.route("/api/export/pcap/alert/<alert_id>", methods=["GET"])
+    def export_alert_pcap(alert_id):
+        """Exports specifically the packets that triggered a given security alert."""
+        if not packet_recorder:
+            return jsonify({"error": "Recorder not available"}), 400
+
+        pcap_data = packet_recorder.export_incident_pcap_bytes(alert_id)
+        return Response(
+            pcap_data,
+            mimetype="application/vnd.tcpdump.pcap",
+            headers={
+                "Content-Disposition": f"attachment; filename=incident_{alert_id[:8]}.pcap",
+                "Content-Length": str(len(pcap_data)),
+            },
+        )
+
+    @app.route("/api/simulate/rate", methods=["POST"])
+    def set_simulation_rate():
+        """Dynamically adjusts synthetic traffic rate multiplier."""
+        data = request.get_json() or {}
+        rate = float(data.get("rate", 1.0))
+        if rate_controller:
+            rate_controller(rate)
+            return jsonify({"status": "updated", "rate": rate})
+        return jsonify({"status": "noop", "rate": rate})
 
     @app.route("/api/export/alerts/csv", methods=["GET"])
     def export_alerts():

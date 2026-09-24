@@ -86,6 +86,41 @@ class PacketRecorder:
                 except Exception:
                     pass
 
+    def snapshot_incident(self, alert_id: str, count: int = 50):
+        """Captures a snapshot of recent packets specifically corresponding to an incident."""
+        with self._lock:
+            if not hasattr(self, "incident_buffers"):
+                self.incident_buffers = {}
+            self.incident_buffers[alert_id] = list(self.buffer)[-count:]
+
+    def export_incident_pcap_bytes(self, alert_id: str) -> bytes:
+        """Serializes specific incident packets into standard PCAP binary format."""
+        import os
+        import tempfile
+
+        with self._lock:
+            if not hasattr(self, "incident_buffers") or alert_id not in self.incident_buffers:
+                pkts = list(self.buffer)[-50:]
+            else:
+                pkts = list(self.incident_buffers[alert_id])
+
+        if not pkts:
+            pkts = [IP(src="127.0.0.1", dst="127.0.0.1") / TCP(dport=80, flags="S")]
+
+        with tempfile.NamedTemporaryFile(suffix=".pcap", delete=False) as tmp:
+            tmp_path = tmp.name
+
+        try:
+            wrpcap(tmp_path, pkts)
+            with open(tmp_path, "rb") as f:
+                return f.read()
+        finally:
+            if os.path.exists(tmp_path):
+                try:
+                    os.remove(tmp_path)
+                except Exception:
+                    pass
+
     def get_count(self) -> int:
         with self._lock:
             return len(self.buffer)

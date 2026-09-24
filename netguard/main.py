@@ -27,11 +27,12 @@ from netguard.config import load_config
 from netguard.detection.engine import DetectionEngine
 from netguard.detection.flow_tracker import TCPFlowTracker
 from netguard.metrics.aggregator import MetricsAggregator
-from netguard.models import PacketEvent
+from netguard.models import Alert, PacketEvent
 from netguard.parsing.packet_parser import ParserWorker
 from netguard.simulation import TrafficSimulator
 from netguard.web.app import create_app
 from netguard.web.events import WebSocketBroadcaster
+from netguard.metrics.device_tracker import DeviceTracker
 
 # Configure clean logging
 logging.basicConfig(
@@ -97,16 +98,21 @@ def main():
     packet_queue = queue.Queue(maxsize=config.capture.queue_maxsize)
     packet_recorder = PacketRecorder(maxlen=1000)
     flow_tracker = TCPFlowTracker(max_flows=500)
+    device_tracker = DeviceTracker()
 
     # 3. Initialize Metrics Aggregator, Alert Manager & Email Notifier
     metrics_aggregator = MetricsAggregator(history_len=60)
     alert_manager = AlertManager(config=config.alerts)
     email_notifier = EmailNotifier()
 
+    def on_alert_dispatched(alert: Alert):
+        packet_recorder.snapshot_incident(alert.id)
+        alert_manager.handle_alert(alert)
+
     # 4. Initialize Detection Engine
     detection_engine = DetectionEngine(
         config=config.detection,
-        on_alert=alert_manager.handle_alert,
+        on_alert=on_alert_dispatched,
     )
 
     # Reference for websocket broadcaster (set up after app creation)
@@ -117,6 +123,7 @@ def main():
         metrics_aggregator.on_packet(event)
         detection_engine.process_packet(event)
         flow_tracker.on_packet(event)
+        device_tracker.on_packet(event)
         packet_recorder.record_event(event)
         if broadcaster_ref[0]:
             broadcaster_ref[0].on_packet_event(event)
@@ -140,17 +147,26 @@ def main():
             return simulator.simulate_rst_abuse()
         elif t in ("icmp_flood", "ping_flood"):
             return simulator.simulate_icmp_flood()
+        elif t in ("udp_flood", "dns_amplification"):
+            return simulator.simulate_udp_flood()
+        elif t in ("dns_tunneling", "dns_exfiltration"):
+            return simulator.simulate_dns_tunneling()
         else:
             raise ValueError(f"Unknown attack type: {attack_type}")
 
     # Background baseline traffic generator
     sim_stop_event = threading.Event()
+    traffic_rate_multiplier = [1.0]
+
+    def set_sim_rate(val: float):
+        traffic_rate_multiplier[0] = max(0.2, min(20.0, float(val)))
 
     def background_traffic_generator():
         while not sim_stop_event.is_set():
             pkt = simulator.generate_normal_packet()
             on_packet_event(pkt)
-            time.sleep(random.uniform(0.08, 0.30))
+            base_sleep = random.uniform(0.08, 0.25)
+            time.sleep(max(0.002, base_sleep / traffic_rate_multiplier[0]))
 
     if args.mode in ("simulation", "hybrid"):
         bg_thread = threading.Thread(
@@ -208,6 +224,8 @@ def main():
         detection_engine=detection_engine,
         packet_buffer_supplier=lambda: broadcaster_ref[0].get_packet_history() if broadcaster_ref[0] else [],
         email_notifier=email_notifier,
+        device_tracker=device_tracker,
+        rate_controller=set_sim_rate,
     )
 
     # 10. Start WebSocket Broadcaster

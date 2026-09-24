@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NetGuard - Network Intrusion Detection System</title>
+    <!-- Chart.js, Socket.IO, Leaflet -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css">
@@ -11,51 +12,46 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="brand-logo">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
             <div class="brand-text">
-                <span class="app-title">NETGUARD <span class="version-badge">v2.4.1</span></span>
-                <span class="app-desc">network ids</span>
+                <span class="app-title">NETGUARD <span class="version-badge">SOC v2.5</span></span>
+                <span class="app-desc">Intrusion Detection System</span>
             </div>
         </div>
 
-        <div class="sidebar-section-label">Monitoring</div>
+        <div class="sidebar-section-label">Dedicated Workspaces</div>
 
         <nav class="sidebar-nav">
-            <button class="nav-item active" onclick="switchTab('overview', this)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-                <span>Telemetry Overview</span>
+            <button class="nav-item active" onclick="switchTab('network', this)" id="nav-network">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                <span>1. Network & Traffic</span>
             </button>
-            <button class="nav-item" onclick="switchTab('threatmap', this)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                <span>Threat Map</span>
+            <button class="nav-item" onclick="switchTab('threats', this)" id="nav-threats">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="11" r="3"/></svg>
+                <span>2. Threat Radar & Attacks</span>
             </button>
-            <button class="nav-item" onclick="switchTab('dissector', this)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <span>Packet Inspector</span>
+            <button class="nav-item" onclick="switchTab('forensics', this)" id="nav-forensics">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>3. Host & Packet Forensics</span>
             </button>
-            <button class="nav-item" onclick="switchTab('connections', this)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                <span>TCP Flow Table</span>
+
+            <div class="sidebar-section-label" style="margin-top:0.75rem;">System & Management</div>
+
+            <button class="nav-item" onclick="switchTab('config', this)" id="nav-config">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Detection Rules & Email</span>
             </button>
-            <button class="nav-item" onclick="switchTab('blacklist', this)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                <span>IP Blacklist</span>
-            </button>
-            <button class="nav-item" onclick="switchTab('config', this)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                <span>Settings</span>
-            </button>
-            <button class="nav-item" onclick="switchTab('export', this)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                <span>Reports & Export</span>
+            <button class="nav-item" onclick="switchTab('export', this)" id="nav-export">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span>Reports & PCAP Export</span>
             </button>
         </nav>
 
@@ -69,14 +65,14 @@
                 </div>
                 <div class="daemon-row">
                     <span>Interface</span>
-                    <span class="daemon-val" id="iface-display">--</span>
+                    <span class="daemon-val" id="iface-display">simulation</span>
                 </div>
                 <div class="daemon-row">
-                    <span>Ring Buffer</span>
-                    <span class="daemon-val accent" id="ringbuf-display">0 / 1000</span>
+                    <span>Active Heuristics</span>
+                    <span class="daemon-val accent">5 Detectors</span>
                 </div>
                 <div class="daemon-row">
-                    <span>Engine Latency</span>
+                    <span>Latency</span>
                     <span class="daemon-val" id="latency-display">&lt;1 ms</span>
                 </div>
             </div>
@@ -85,24 +81,39 @@
 
     <!-- Top Header Bar -->
     <header class="top-header" id="top-header">
-        <div class="header-search">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" placeholder="Search alerts, IPs, events..." id="global-search">
+        <div class="workspace-tabs">
+            <button class="workspace-tab active" onclick="switchTab('network')">📊 Network & Traffic</button>
+            <button class="workspace-tab" onclick="switchTab('threats')">🛡️ Threat Radar</button>
+            <button class="workspace-tab" onclick="switchTab('forensics')">🔍 Forensics</button>
         </div>
 
-        <div class="header-alert-badge hidden" id="header-alert-badge">
-            <span class="dot"></span>
-            <span id="header-alert-count">0 alerts</span>
-        </div>
-
-        <div class="header-meta">
-            <div class="header-meta-item">
-                <span class="label">Uptime</span>
-                <span class="value accent" id="uptime-display">00:00:00</span>
+        <div class="header-right-tools">
+            <!-- Rate Multiplier -->
+            <div class="speed-controller" title="Synthetic traffic rate multiplier">
+                <span style="font-size:10px;color:#64748b;font-family:var(--font-mono);padding:0 3px;">Rate:</span>
+                <button class="speed-btn active" id="spd-1x" onclick="setSimRate(1.0, this)">1x</button>
+                <button class="speed-btn" id="spd-3x" onclick="setSimRate(3.0, this)">3x</button>
+                <button class="speed-btn" id="spd-10x" onclick="setSimRate(10.0, this)">10x</button>
             </div>
-            <div class="header-meta-item">
-                <span class="label">UTC</span>
-                <span class="value" id="utc-clock">--:--:--</span>
+
+            <!-- Guided Tour Button -->
+            <button class="tour-btn tour-btn-primary" onclick="startGuidedTour()" style="padding:4px 10px;font-size:11px;" title="Interactive SOC Tour">🎓 Guided Tour</button>
+
+            <!-- Timezone Selector & Clocks -->
+            <div class="tz-selector" title="Toggle timestamps between UTC and Local Browser Time">
+                <button class="tz-btn active" id="tz-btn-utc" onclick="setTimezone('UTC')">UTC</button>
+                <button class="tz-btn" id="tz-btn-local" onclick="setTimezone('LOCAL')">Local</button>
+            </div>
+
+            <div class="header-meta">
+                <div class="header-meta-item">
+                    <span class="label">Clock:</span>
+                    <span class="value" id="live-clock">--:--:--</span>
+                </div>
+                <div class="header-meta-item">
+                    <span class="label">Uptime:</span>
+                    <span class="value accent" id="uptime-display">00:00:00</span>
+                </div>
             </div>
         </div>
     </header>
@@ -113,177 +124,300 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
         <div class="mobile-brand">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span>NetGuard</span>
+            <span>NetGuard SOC</span>
         </div>
     </header>
 
-    <!-- Toast -->
+    <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container"></div>
 
-    <!-- Main Content -->
+    <!-- Main Content Area -->
     <main class="main-content" id="main-content">
       <div class="main-inner">
 
-        <!-- TAB: OVERVIEW -->
-        <div id="tab-overview" class="tab-pane active">
+        <!-- Visual Packet Pipeline Strip (Always Visible across Workspaces) -->
+        <section class="card pipeline-card" style="margin-bottom: 4px;">
+            <div class="card-header" style="margin-bottom: 4px;">
+                <div class="card-title-group">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <h3 style="font-size:12px;">Real-Time Packet Inspection Pipeline</h3>
+                    <span class="info-tip" data-tooltip="Packets arrive at the virtual/live interface, pass into kernel ring buffer, get decoded at L3/L4, evaluated by 5 heuristic engines, and trigger alerts/SOAR blocks.">?</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="badge badge-muted" id="pipeline-pps">0 pps</span>
+                    <span class="badge" style="background:#1e293b;border:1px solid #334155;color:#38bdf8;" id="pipeline-load">Clean</span>
+                </div>
+            </div>
+            <div class="pipeline-container">
+                <canvas id="pipeline-canvas" width="800" height="70"></canvas>
+                <div class="pipeline-stages">
+                    <div class="stage"><div class="stage-icon">📡</div><div class="stage-name">1. Wire Ingress</div></div>
+                    <div class="stage"><div class="stage-icon">📦</div><div class="stage-name">2. Ring Buffer</div></div>
+                    <div class="stage"><div class="stage-icon">🔍</div><div class="stage-name">3. L3/L4 Decoder</div></div>
+                    <div class="stage"><div class="stage-icon">🛡️</div><div class="stage-name">4. Heuristic Engine</div></div>
+                    <div class="stage"><div class="stage-icon">🚨</div><div class="stage-name">5. Alert & SOAR</div></div>
+                </div>
+            </div>
+        </section>
 
-            <!-- KPI Cards (Figma style) -->
+        <!-- ============================================================
+             WORKSPACE 1: NETWORK HEALTH & TRAFFIC MONITOR
+             ============================================================ -->
+        <div id="tab-network" class="tab-pane active">
+            <!-- Diagnostic Behavior Interpretation Banner -->
+            <div class="diag-banner" id="diag-banner">
+                <div class="diag-left">
+                    <span class="diag-icon" id="diag-icon">🟢</span>
+                    <div>
+                        <span class="diag-title" id="diag-title">Healthy Traffic Baseline</span>
+                        <div class="diag-desc" id="diag-desc">No anomalous floods or port sweeps detected. Packets are sized proportionally with payload.</div>
+                    </div>
+                </div>
+                <div class="diag-chips">
+                    <span class="diag-chip" id="chip-avg-size">Avg Size: -- B</span>
+                    <span class="diag-chip" id="chip-pps">PPS: 0</span>
+                    <span class="diag-chip" id="chip-bandwidth">Bandwidth: 0 KB/s</span>
+                </div>
+            </div>
+
+            <!-- KPI Cards Grid: 5 Core Telemetry Blocks -->
             <section class="kpi-grid">
-                <div class="kpi-card">
+                <!-- Card 1: Threat Level (0 to 100) -->
+                <div class="kpi-card" id="card-threat-level">
                     <div class="kpi-top">
-                        <span class="label">Ingress Volume</span>
-                        <span class="kpi-delta positive" id="kpi-pps-delta">+0 pps</span>
+                        <span class="label">Threat Level
+                            <span class="info-tip" data-tooltip="Real-time threat index from 0 to 100, calculated dynamically from packet rate anomalies and recent intrusion alert severities.">?</span>
+                        </span>
+                        <span class="tag tag-normal" id="kpi-threat-status">Normal</span>
+                    </div>
+                    <div class="kpi-main">
+                        <span class="kpi-value emerald" id="kpi-threat-val">0<span class="unit"> / 100</span></span>
+                        <span class="kpi-desc" id="kpi-threat-desc">Real-time risk index</span>
+                    </div>
+                    <div class="kpi-bar-track">
+                        <div class="kpi-bar-fill emerald" id="kpi-threat-bar" style="width: 0%;"></div>
+                    </div>
+                    <div class="kpi-footer">
+                        <span>Risk Status:</span>
+                        <span class="val" id="threat-status-label">Guarded &le; 20</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Security Alerts -->
+                <div class="kpi-card" id="card-security-alerts">
+                    <div class="kpi-top">
+                        <span class="label">Security Alerts
+                            <span class="info-tip" data-tooltip="Total security intrusion alerts triggered by the 6 heuristic engines (Port Scans, SYN Floods, RST Abuse, UDP/ICMP Floods, DNS Tunneling).">?</span>
+                        </span>
+                        <span class="kpi-delta warning" id="kpi-alert-delta" style="display:none">+0</span>
+                    </div>
+                    <div class="kpi-main">
+                        <span class="kpi-value rose-text" id="kpi-alerts-count">0</span>
+                        <span class="kpi-desc" id="kpi-critical-count">0 high / critical</span>
+                    </div>
+                    <div class="kpi-footer">
+                        <span>Detection Engine:</span>
+                        <span class="val accent" id="kpi-alerts-footer">6 Active Rules</span>
+                    </div>
+                </div>
+
+                <!-- Card 3: Ingress Volume -->
+                <div class="kpi-card" id="card-ingress-volume">
+                    <div class="kpi-top">
+                        <span class="label">Ingress Volume
+                            <span class="info-tip" data-tooltip="Total raw packets and cumulative byte volume captured since startup. Click 'Reset' anytime to begin a clean demonstration run.">?</span>
+                        </span>
+                        <button class="btn-reset-metrics" onclick="resetSessionMetrics()" title="Reset session ingress counters to zero">⟲ Reset</button>
                     </div>
                     <div class="kpi-main">
                         <span class="kpi-value" id="kpi-total-packets">0</span>
-                        <span class="kpi-desc">Total packets captured</span>
+                        <span class="kpi-desc" id="kpi-total-volume">0.0 KB captured</span>
                     </div>
                     <div class="kpi-footer">
-                        <span>Clean Ingress</span>
-                        <span class="val emerald" id="kpi-clean-pct">99.8%</span>
+                        <span>Clean Ratio:</span>
+                        <span class="val emerald" id="kpi-clean-pct">100.0%</span>
                     </div>
                 </div>
-                <div class="kpi-card">
+
+                <!-- Card 4: Throughput -->
+                <div class="kpi-card" id="card-throughput">
                     <div class="kpi-top">
-                        <span class="label">Throughput</span>
+                        <span class="label">Throughput / Bandwidth
+                            <span class="info-tip" data-tooltip="Current data transfer rate calculated over 1-second rolling intervals (bytes per second converted to KB/s and Kbps).">?</span>
+                        </span>
+                        <span class="kpi-delta positive" id="kpi-pps-delta">+0 pps</span>
                     </div>
                     <div class="kpi-main">
                         <span class="kpi-value" id="kpi-throughput">0.0 <span class="unit">KB/s</span></span>
                         <span class="kpi-desc" id="kpi-kbps">0.0 Kbps</span>
                     </div>
                     <div class="kpi-footer">
-                        <span>Link Saturation</span>
+                        <span>Link Saturation:</span>
                         <span class="val accent" id="kpi-link-sat">0.1%</span>
                     </div>
-                    <div class="kpi-bar-track"><div class="kpi-bar-fill blue" id="kpi-sat-bar" style="width:0.1%"></div></div>
                 </div>
-                <div class="kpi-card">
+
+                <!-- Card 5: Connection Capacity & Size -->
+                <div class="kpi-card" id="card-connections">
                     <div class="kpi-top">
-                        <span class="label">Security Alerts</span>
-                        <span class="kpi-delta warning" id="kpi-alert-delta" style="display:none">+0</span>
-                    </div>
-                    <div class="kpi-main">
-                        <span class="kpi-value" id="kpi-alerts-count">0</span>
-                        <span class="kpi-desc" id="kpi-critical-count">0 high / critical</span>
-                    </div>
-                    <div class="kpi-footer">
-                        <span>Buffer Utilization</span>
-                        <span class="val" id="kpi-buf-pct">0%</span>
-                    </div>
-                    <div class="kpi-bar-track"><div class="kpi-bar-fill rose" id="kpi-buf-bar" style="width:0%"></div></div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-top">
-                        <span class="label">Active TCP Flows</span>
+                        <span class="label">Active Connections
+                            <span class="info-tip" data-tooltip="Active stateful TCP connection 4-tuples currently tracked in memory, along with half-open handshakes and dropped buffer frames.">?</span>
+                        </span>
+                        <span class="kpi-delta" id="kpi-size-delta" style="background:#1e293b;color:#cbd5e1;">Normal</span>
                     </div>
                     <div class="kpi-main">
                         <span class="kpi-value" id="kpi-flows">0</span>
                         <span class="kpi-desc" id="kpi-half-open">0 half-open</span>
                     </div>
                     <div class="kpi-footer">
-                        <span>Drops</span>
-                        <span class="val" id="kpi-drops">0</span>
+                        <span>Avg Size:</span>
+                        <span class="val" id="kpi-avg-size">0 <span class="unit">Bytes</span></span>
                     </div>
                 </div>
             </section>
 
-            <!-- Diagnostic Traffic Generator -->
-            <section class="attack-section">
-                <div class="attack-header">
-                    <div class="attack-header-left">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                        Diagnostic Traffic Generator
-                    </div>
-                    <div class="attack-header-right">
-                        <span class="attack-idle-badge" id="attack-status">
-                            <span class="status-dot"></span>
-                            Idle
-                        </span>
-                        <button class="btn btn-sm btn-ghost" onclick="clearAlerts()">Clear Alerts</button>
-                    </div>
-                </div>
-                <div class="attack-vectors">
-                    <div class="attack-vector" onclick="triggerAttack('port_scan')">
-                        <div class="vector-header"><span>Reconnaissance</span></div>
-                        <div class="vector-title">Vertical Port Scan</div>
-                        <div class="vector-desc">Sequential probing of 1024 ports on a single target host</div>
-                        <div class="vector-meta">Target: 10.0.0.5:1-1024</div>
-                        <button class="btn-vector">Execute Vector</button>
-                    </div>
-                    <div class="attack-vector" onclick="triggerAttack('port_scan_horizontal')">
-                        <div class="vector-header"><span>Reconnaissance</span></div>
-                        <div class="vector-title">Horizontal Port Sweep</div>
-                        <div class="vector-desc">Scan a single port across a /24 subnet range</div>
-                        <div class="vector-meta">Target: 10.0.0.0/24:80</div>
-                        <button class="btn-vector">Execute Vector</button>
-                    </div>
-                    <div class="attack-vector stress" onclick="triggerAttack('syn_flood')">
-                        <div class="vector-header"><span>Denial of Service</span><span class="vector-tag stress">STRESS</span></div>
-                        <div class="vector-title">SYN Flood (DoS)</div>
-                        <div class="vector-desc">High-volume spoofed SYN packets targeting service port</div>
-                        <div class="vector-meta">Target: 10.0.0.1:80</div>
-                        <button class="btn-vector danger">Execute Vector</button>
-                    </div>
-                    <div class="attack-vector" onclick="triggerAttack('rst_abuse')">
-                        <div class="vector-header"><span>Disruption</span></div>
-                        <div class="vector-title">RST Burst (443)</div>
-                        <div class="vector-desc">Malicious TCP reset injection against HTTPS</div>
-                        <div class="vector-meta">Target: 10.0.0.1:443</div>
-                        <button class="btn-vector">Execute Vector</button>
-                    </div>
-                    <div class="attack-vector" onclick="triggerAttack('icmp_flood')">
-                        <div class="vector-header"><span>Flood</span></div>
-                        <div class="vector-title">ICMP Flood</div>
-                        <div class="vector-desc">Saturate link with echo request / reply traffic</div>
-                        <div class="vector-meta">Target: 10.0.0.1</div>
-                        <button class="btn-vector">Execute Vector</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Charts -->
+            <!-- Dual-Axis Chart & Protocol Distribution -->
             <section class="charts-grid">
+                <!-- Dual-Axis Bandwidth & Packet Rate Chart -->
                 <div class="card chart-card">
                     <div class="card-header">
                         <div class="card-title-group">
-                            <h3>Bandwidth & Packet Rate</h3>
-                            <span class="badge badge-muted">60s Rolling</span>
+                            <h3>Dual-Axis Telemetry (Bandwidth & Packet Rate)</h3>
+                            <span class="info-tip" data-tooltip="Left Y-Axis displays Bandwidth (KB/s). Right Y-Axis displays Packets Per Second (PPS). A high PPS with flat bandwidth indicates flood attacks.">?</span>
+                        </div>
+                        <div class="chart-controls">
+                            <span class="diag-chip" id="chart-pps-stat">Peak: 0 pps</span>
+                            <div class="pill-group">
+                                <button class="btn-chart-range active" onclick="setChartRange(60)">60s</button>
+                                <button class="btn-chart-range" onclick="setChartRange(300)">5m</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="chart-box"><canvas id="bandwidthChart"></canvas></div>
+                    <div class="chart-box" style="height: 230px;"><canvas id="bandwidthChart"></canvas></div>
                     <div class="sub-kpi-row">
-                        <div class="sub-kpi"><span class="label">PPS Rate</span><span class="value" id="sub-pps">0</span></div>
-                        <div class="sub-kpi"><span class="label">Mean Latency</span><span class="value emerald" id="sub-latency">&lt;1ms</span></div>
-                        <div class="sub-kpi"><span class="label">SYN:ACK</span><span class="value" id="sub-synack">1:1</span></div>
-                        <div class="sub-kpi"><span class="label">Capture Drops</span><span class="value" id="sub-drops">0</span></div>
+                        <div class="sub-kpi"><span class="label">Current PPS</span><span class="value" id="sub-pps">0</span></div>
+                        <div class="sub-kpi"><span class="label">Packet Size</span><span class="value" id="sub-avg-size">0 B</span></div>
+                        <div class="sub-kpi"><span class="label">Processing Latency</span><span class="value emerald" id="sub-latency">&lt;1ms</span></div>
+                        <div class="sub-kpi"><span class="label">Dropped Frames</span><span class="value" id="sub-drops">0</span></div>
                     </div>
                 </div>
+
+                <!-- Protocol Distribution -->
                 <div class="card chart-card">
-                    <div class="card-header"><h3>Protocol Distribution</h3></div>
-                    <div class="chart-box donut-box"><canvas id="protocolChart"></canvas></div>
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <h3>Protocol Distribution</h3>
+                            <span class="info-tip" data-tooltip="Layer-4 protocol breakdown decoded from packet headers. Normal traffic is primarily TCP (Web/TLS) with some UDP (DNS).">?</span>
+                        </div>
+                    </div>
+                    <div class="chart-box donut-box" style="height: 230px;"><canvas id="protocolChart"></canvas></div>
                 </div>
             </section>
 
-            <!-- Top Hosts (ranked) -->
+            <!-- Top Talkers Leaderboard -->
             <section class="card">
                 <div class="card-header">
-                    <h3>Top Source Hosts</h3>
-                    <span class="badge badge-muted" id="top-hosts-count">0 unique</span>
+                    <div class="card-title-group">
+                        <h3>Active Top Source Hosts (Last 1 Second)</h3>
+                        <span class="info-tip" data-tooltip="Top 5 busiest hosts by data volume in the latest 1-second interval. Attackers instantly jump to #1 when launching floods.">?</span>
+                    </div>
+                    <span class="badge badge-muted" id="top-hosts-count">0 active</span>
                 </div>
                 <div class="top-hosts" id="top-hosts-list">
-                    <div style="text-align:center;color:var(--text-muted);padding:1.5rem;font-size:12px;">No hosts detected yet. Traffic data will populate this section.</div>
+                    <div style="text-align:center;color:var(--text-muted);padding:1.5rem;font-size:12px;">Monitoring stream... Active host traffic will rank here in real time.</div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ============================================================
+             WORKSPACE 2: THREAT RADAR & ATTACK VECTOR LAB
+             ============================================================ -->
+        <div id="tab-threats" class="tab-pane">
+            <div class="page-title">
+                <h1>Threat Radar & Intrusion Detection Lab</h1>
+                <p>Simulate hostile attack vectors, monitor real-time security alerts, and inspect attack mechanics</p>
+            </div>
+
+            <!-- Categorized Attack Simulation Deck -->
+            <section class="card" style="margin-bottom: 14px;">
+                <div class="card-header">
+                    <div class="card-title-group">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        <h3>Attack Simulation Vectors</h3>
+                        <span class="info-tip" data-tooltip="Generates reproducible, RFC-compliant synthetic attacks directly into NetGuard's pipeline for teaching and live demonstrations.">?</span>
+                    </div>
+                    <span class="attack-idle-badge" id="attack-status">
+                        <span class="status-dot"></span>
+                        Simulator Ready
+                    </span>
+                </div>
+
+                <!-- Category 1: Reconnaissance -->
+                <div class="attack-category-title">🔍 Phase 1: Reconnaissance & Scanning</div>
+                <div class="attack-vectors" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                    <div class="attack-vector" onclick="triggerAttack('port_scan')">
+                        <div class="vector-header"><span>Vertical Scan</span><span class="vector-tag">PROBE</span></div>
+                        <div class="vector-title">Vertical Port Scan</div>
+                        <div class="vector-desc">Probes 20 sensitive ports on a single host (192.168.1.10) within 3.0s</div>
+                        <button class="btn-vector">Launch Vector</button>
+                    </div>
+                    <div class="attack-vector" onclick="triggerAttack('port_scan_horizontal')">
+                        <div class="vector-header"><span>Horizontal Sweep</span><span class="vector-tag">SWEEP</span></div>
+                        <div class="vector-title">Subnet Host Sweep</div>
+                        <div class="vector-desc">Probes port 22 (SSH) across 18 IPs on the local subnet</div>
+                        <button class="btn-vector">Launch Vector</button>
+                    </div>
+                    <div class="attack-vector" onclick="triggerAttack('dns_tunneling')">
+                        <div class="vector-header"><span>Covert Exfil</span><span class="vector-tag">TUNNEL</span></div>
+                        <div class="vector-title">DNS Tunneling Exfiltration</div>
+                        <div class="vector-desc">Leaks encoded payload chunks via high-entropy UDP 53 DNS TXT queries</div>
+                        <button class="btn-vector">Launch Vector</button>
+                    </div>
+                </div>
+
+                <!-- Category 2: Volumetric Denial of Service -->
+                <div class="attack-category-title">💥 Phase 2: Volumetric Denial of Service (DoS)</div>
+                <div class="attack-vectors" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                    <div class="attack-vector stress" onclick="triggerAttack('syn_flood')">
+                        <div class="vector-header"><span>TCP Handshake</span><span class="vector-tag stress">CRITICAL</span></div>
+                        <div class="vector-title">TCP SYN Flood</div>
+                        <div class="vector-desc">Sends 65 unacknowledged SYNs to port 80 to exhaust connection state tables</div>
+                        <button class="btn-vector danger">Launch Vector</button>
+                    </div>
+                    <div class="attack-vector stress" onclick="triggerAttack('udp_flood')">
+                        <div class="vector-header"><span>Amplification</span><span class="vector-tag stress">HIGH</span></div>
+                        <div class="vector-title">UDP Flood / DNS Amp</div>
+                        <div class="vector-desc">High-volume UDP packets targeting port 53 simulating DNS reflection flood</div>
+                        <button class="btn-vector danger">Launch Vector</button>
+                    </div>
+                    <div class="attack-vector" onclick="triggerAttack('icmp_flood')">
+                        <div class="vector-header"><span>Ping Saturation</span><span class="vector-tag">MEDIUM</span></div>
+                        <div class="vector-title">ICMP Echo Flood</div>
+                        <div class="vector-desc">Spikes network PPS with 80 continuous ICMP echo request packets</div>
+                        <button class="btn-vector">Launch Vector</button>
+                    </div>
+                </div>
+
+                <!-- Category 3: Session Disruption -->
+                <div class="attack-category-title">⚡ Phase 3: Session Hijacking & Disruption</div>
+                <div class="attack-vectors" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                    <div class="attack-vector" onclick="triggerAttack('rst_abuse')">
+                        <div class="vector-header"><span>TCP Teardown</span><span class="vector-tag">MEDIUM</span></div>
+                        <div class="vector-title">RST/FIN Session Injection</div>
+                        <div class="vector-desc">Injects unsolicited TCP RST packets against TLS port 443 to kill connections</div>
+                        <button class="btn-vector">Launch Vector</button>
+                    </div>
                 </div>
             </section>
 
-            <!-- Security Event Log -->
-            <section class="card">
+            <!-- Detection Event Log -->
+            <section class="card" style="margin-bottom: 14px;">
                 <div class="card-header">
                     <div class="card-title-group">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                         <div>
-                            <h3>Detection Event Log</h3>
-                            <span class="card-subtitle mono" id="alerts-table-badge">0 events recorded</span>
+                            <h3>Intrusion Detection Event Log</h3>
+                            <span class="card-subtitle mono" id="alerts-table-badge">0 security alerts recorded</span>
                         </div>
                     </div>
                     <div class="filter-bar">
@@ -293,6 +427,7 @@
                             <option value="HIGH">High</option>
                             <option value="MEDIUM">Medium</option>
                         </select>
+                        <button class="btn btn-sm btn-ghost" onclick="clearAlerts()">Clear Log</button>
                     </div>
                 </div>
                 <div class="table-wrap">
@@ -301,182 +436,206 @@
                             <tr>
                                 <th>Timestamp</th>
                                 <th>Severity</th>
-                                <th>Event Type</th>
-                                <th>Source IP</th>
+                                <th>Attack Vector</th>
+                                <th>Attacker IP</th>
                                 <th>Target IP</th>
-                                <th>Description</th>
-                                <th>Actions</th>
+                                <th>Heuristic Summary</th>
+                                <th>Educational Actions</th>
                             </tr>
                         </thead>
                         <tbody id="alerts-body">
-                            <tr class="empty-row"><td colspan="7">No security events recorded. Traffic is within normal baseline.</td></tr>
+                            <tr class="empty-row"><td colspan="7">No security events recorded. Trigger an attack vector above to test detection.</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
-        </div>
 
-        <!-- TAB: THREAT MAP -->
-        <div id="tab-threatmap" class="tab-pane">
-            <div class="page-title">
-                <h1>Global Threat Map</h1>
-                <p>Geographic visualization of attacker source IPs</p>
-            </div>
+            <!-- Global Threat Map -->
             <section class="card">
                 <div class="card-header">
-                    <h3>Attacker Geolocation</h3>
-                    <button class="btn btn-ghost" onclick="refreshThreatMap()">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                        Refresh
-                    </button>
+                    <div class="card-title-group">
+                        <h3>Geographic Threat Radar</h3>
+                        <span class="info-tip" data-tooltip="Maps external attacker source IPs to geographical coordinates to identify domestic vs foreign threats.">?</span>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="refreshThreatMap()">Refresh Map</button>
                 </div>
-                <div id="threat-map" class="map-container"></div>
+                <div id="threat-map" class="map-container" style="height:280px;"></div>
                 <div class="table-wrap" style="margin-top: 12px;">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>IP Address</th>
-                                <th>City</th>
-                                <th>Country</th>
+                                <th>City / Country</th>
                                 <th>Organization</th>
-                                <th>Alerts</th>
-                                <th>Last Attack</th>
-                                <th>Severity</th>
+                                <th>Incidents</th>
+                                <th>Last Detected Type</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="geo-table-body">
-                            <tr class="empty-row"><td colspan="8">No attacker locations available. Trigger an attack simulation first.</td></tr>
+                            <tr class="empty-row"><td colspan="6">No external attacker locations mapped yet.</td></tr>
                         </tbody>
                     </table>
                 </div>
             </section>
         </div>
 
-        <!-- TAB: PACKET INSPECTOR -->
-        <div id="tab-dissector" class="tab-pane">
+        <!-- ============================================================
+             WORKSPACE 3: HOST & PACKET FORENSICS
+             ============================================================ -->
+        <div id="tab-forensics" class="tab-pane">
             <div class="page-title">
-                <h1>Packet Inspector</h1>
-                <p>Live Wireshark-style packet dissector and stream viewer</p>
+                <h1>Forensics & Deep Inspection</h1>
+                <p>Analyze connected hosts, stateful TCP handshakes, and inspect raw packet headers</p>
             </div>
-            <section class="card">
-                <div class="dissector-toolbar">
-                    <div class="toolbar-left">
-                        <button class="btn btn-ghost btn-sm" id="btn-stream-toggle" onclick="togglePacketStream()">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-                            Pause
-                        </button>
-                        <button class="btn btn-ghost btn-sm" onclick="clearPacketBuffer()">Clear</button>
-                        <div class="pill-group">
-                            <button class="pill active" onclick="setPacketProtoFilter('ALL')">All</button>
-                            <button class="pill" onclick="setPacketProtoFilter('TCP')">TCP</button>
-                            <button class="pill" onclick="setPacketProtoFilter('UDP')">UDP</button>
-                            <button class="pill" onclick="setPacketProtoFilter('ICMP')">ICMP</button>
+
+            <!-- Subtabs Switcher -->
+            <div class="forensics-subtabs">
+                <button class="forensics-tab-btn active" onclick="switchForensicSubtab('devices', this)">🖥️ Connected Device Inventory</button>
+                <button class="forensics-tab-btn" onclick="switchForensicSubtab('connections', this)">🔗 TCP Connection Flow Table</button>
+                <button class="forensics-tab-btn" onclick="switchForensicSubtab('dissector', this)">📦 Live Wireshark Packet Inspector</button>
+            </div>
+
+            <!-- Subtab 1: Connected Devices -->
+            <div id="subpane-devices" class="forensics-subpane">
+                <section class="kpi-grid" style="margin-bottom:14px">
+                    <div class="kpi-card">
+                        <div class="kpi-top"><span class="label">Total Devices</span></div>
+                        <div class="kpi-main"><span class="kpi-value" id="device-total">0</span><span class="kpi-desc">Unique hosts observed</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-top"><span class="label">Local Network</span></div>
+                        <div class="kpi-main"><span class="kpi-value" id="device-local">0</span><span class="kpi-desc">Private RFC1918 IPs</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-top"><span class="label">External Hosts</span></div>
+                        <div class="kpi-main"><span class="kpi-value" id="device-external">0</span><span class="kpi-desc">Internet/WAN endpoints</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-top"><span class="label">Flagged Attackers</span></div>
+                        <div class="kpi-main"><span class="kpi-value rose-text" id="device-flagged">0</span><span class="kpi-desc">Breached thresholds</span></div>
+                    </div>
+                </section>
+                <section class="card">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <h3>Observed Host Inventory</h3>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" onclick="refreshDevices()">Refresh Devices</button>
+                    </div>
+                    <div class="table-wrap stream-scroll">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Host IP</th>
+                                    <th>Network Role</th>
+                                    <th>Protocols</th>
+                                    <th>Total Packets</th>
+                                    <th>Transferred Volume</th>
+                                    <th>Contacted Ports</th>
+                                    <th>First Observed</th>
+                                    <th>Last Activity</th>
+                                    <th>Security Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="devices-body">
+                                <tr class="empty-row"><td colspan="9">Observing stream... Host profiles will appear as traffic is processed.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Subtab 2: TCP Flow Table -->
+            <div id="subpane-connections" class="forensics-subpane" style="display:none;">
+                <section class="card">
+                    <div class="card-header">
+                        <div class="card-title-group">
+                            <h3>Stateful TCP Handshake Tracker (RFC 793)</h3>
+                            <span class="info-tip" data-tooltip="Tracks active 4-tuples (Src IP:Port -> Dst IP:Port) through SYN_SENT, SYN_RCVD, ESTABLISHED, and FIN_WAIT. Unanswered SYNs flag as HALF_OPEN.">?</span>
+                        </div>
+                        <button class="btn btn-ghost btn-sm" onclick="refreshConnections()">Refresh Flows</button>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Connection 4-Tuple</th>
+                                    <th>Client Host</th>
+                                    <th>Server Service</th>
+                                    <th>Handshake State</th>
+                                    <th>Duration</th>
+                                    <th>Packets</th>
+                                    <th>Transferred Volume</th>
+                                    <th>Last Activity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="connections-body">
+                                <tr class="empty-row"><td colspan="8">No active TCP connections currently tracked.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Subtab 3: Live Wireshark Packet Inspector -->
+            <div id="subpane-dissector" class="forensics-subpane" style="display:none;">
+                <section class="card">
+                    <div class="dissector-toolbar">
+                        <div class="toolbar-left">
+                            <button class="btn btn-ghost btn-sm" id="btn-stream-toggle" onclick="togglePacketStream()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                                Pause Stream
+                            </button>
+                            <button class="btn btn-ghost btn-sm" onclick="clearPacketBuffer()">Clear</button>
+                            <div class="pill-group">
+                                <button class="pill active" onclick="setPacketProtoFilter('ALL')">All</button>
+                                <button class="pill" onclick="setPacketProtoFilter('TCP')">TCP</button>
+                                <button class="pill" onclick="setPacketProtoFilter('UDP')">UDP</button>
+                                <button class="pill" onclick="setPacketProtoFilter('ICMP')">ICMP</button>
+                            </div>
+                        </div>
+                        <div class="search-input-wrap">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input type="text" id="packet-search" placeholder="Search IP, port, flags..." oninput="filterPacketTable()">
                         </div>
                     </div>
-                    <div class="search-input-wrap">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                        <input type="text" id="packet-search" placeholder="Filter by IP, port, or flag..." oninput="filterPacketTable()">
+                    <div class="table-wrap stream-scroll">
+                        <table class="data-table packet-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:50px">No.</th>
+                                    <th style="width:90px">Time</th>
+                                    <th>Source</th>
+                                    <th>Destination</th>
+                                    <th style="width:70px">Protocol</th>
+                                    <th style="width:70px">Length</th>
+                                    <th style="width:55px">TTL</th>
+                                    <th>Header Flags / Summary</th>
+                                    <th style="width:70px">Inspect</th>
+                                </tr>
+                            </thead>
+                            <tbody id="packet-stream-body">
+                                <tr class="empty-row"><td colspan="9">Streaming live packets from network interface...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-                <div class="table-wrap stream-scroll">
-                    <table class="data-table packet-table">
-                        <thead>
-                            <tr>
-                                <th style="width:50px">No.</th>
-                                <th style="width:90px">Time</th>
-                                <th>Source</th>
-                                <th>Destination</th>
-                                <th style="width:70px">Protocol</th>
-                                <th style="width:70px">Length</th>
-                                <th style="width:55px">TTL</th>
-                                <th>Info & Flags</th>
-                                <th style="width:65px">Dissect</th>
-                            </tr>
-                        </thead>
-                        <tbody id="packet-stream-body">
-                            <tr class="empty-row"><td colspan="9">Waiting for packets... Stream is active.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        </div>
-
-        <!-- TAB: TCP FLOW TABLE -->
-        <div id="tab-connections" class="tab-pane">
-            <div class="page-title">
-                <h1>TCP Connection Tracker</h1>
-                <p>Real-time 4-tuple connection states and handshake monitoring (RFC 793)</p>
+                </section>
             </div>
-            <section class="card">
-                <div class="card-header">
-                    <h3>Active Connections</h3>
-                    <button class="btn btn-ghost btn-sm" onclick="refreshConnections()">Refresh</button>
-                </div>
-                <div class="table-wrap">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Connection 4-Tuple</th>
-                                <th>Client</th>
-                                <th>Server</th>
-                                <th>State</th>
-                                <th>Duration</th>
-                                <th>Packets</th>
-                                <th>Volume</th>
-                                <th>Last Seen</th>
-                            </tr>
-                        </thead>
-                        <tbody id="connections-body">
-                            <tr class="empty-row"><td colspan="8">No active TCP connections currently tracked.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
         </div>
 
-        <!-- TAB: IP BLACKLIST -->
-        <div id="tab-blacklist" class="tab-pane">
-            <div class="page-title">
-                <h1>IP Blacklist</h1>
-                <p>Block known attacker IPs from generating future alerts</p>
-            </div>
-            <section class="card">
-                <div class="card-header"><h3>Manage Blocked IPs</h3></div>
-                <div class="blacklist-form">
-                    <div class="input-group">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-                        <input type="text" id="blacklist-ip-input" placeholder="Enter IP address (e.g. 185.220.101.5)">
-                    </div>
-                    <div class="input-group">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="3" y2="10"/><path d="M21 6H3"/><path d="M21 14H3"/><path d="M21 18H3"/></svg>
-                        <input type="text" id="blacklist-reason-input" placeholder="Reason (optional)">
-                    </div>
-                    <button class="btn btn-danger" onclick="addToBlacklist()">Block IP</button>
-                </div>
-                <div class="table-wrap">
-                    <table class="data-table">
-                        <thead>
-                            <tr><th>IP Address</th><th>Reason</th><th>Blocked Since</th><th>Action</th></tr>
-                        </thead>
-                        <tbody id="blacklist-body">
-                            <tr class="empty-row"><td colspan="4">No IPs blacklisted yet.</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        </div>
-
-        <!-- TAB: SETTINGS -->
+        <!-- ============================================================
+             SECONDARY VIEW: SETTINGS & CONFIGURATION
+             ============================================================ -->
         <div id="tab-config" class="tab-pane">
             <div class="page-title">
-                <h1>Detection Settings</h1>
-                <p>Tune detection thresholds, time windows, and alert parameters</p>
+                <h1>Detection Engine Configuration</h1>
+                <p>Dynamically calibrate heuristic thresholds and automated notifications</p>
             </div>
             <section class="card">
                 <div class="card-header">
-                    <h3>Detection Rules</h3>
-                    <button class="btn btn-primary btn-sm" onclick="applyConfigUpdates()">Save Thresholds</button>
+                    <h3>Heuristic Rule Thresholds</h3>
+                    <button class="btn btn-primary btn-sm" onclick="applyConfigUpdates()">Apply Live Updates</button>
                 </div>
                 <div class="config-grid">
                     <div class="config-card">
@@ -484,16 +643,14 @@
                             <h4>Port Scan Detector</h4>
                             <span class="badge badge-blue">Rule 1</span>
                         </div>
-                        <p class="config-desc">Monitors rapid probing of destination ports per source IP.</p>
+                        <p class="config-desc">Flags rapid probing of unique destination ports from a single IP.</p>
                         <div class="form-field">
                             <label for="cfg-port-threshold">Unique Port Threshold</label>
                             <input type="number" id="cfg-port-threshold" min="3" max="100" value="15">
-                            <span class="form-hint">Trigger when source probes N+ unique ports</span>
                         </div>
                         <div class="form-field">
-                            <label for="cfg-port-window">Time Window (seconds)</label>
+                            <label for="cfg-port-window">Time Window (s)</label>
                             <input type="number" id="cfg-port-window" min="0.5" max="30" step="0.5" value="3.0">
-                            <span class="form-hint">Sliding window eviction duration</span>
                         </div>
                     </div>
                     <div class="config-card">
@@ -501,9 +658,9 @@
                             <h4>TCP SYN Flood Detector</h4>
                             <span class="badge badge-red">Rule 2</span>
                         </div>
-                        <p class="config-desc">Detects unacknowledged SYN floods using SYN:ACK ratio.</p>
+                        <p class="config-desc">Monitors unacknowledged SYN packet bursts and SYN:ACK ratios.</p>
                         <div class="form-field">
-                            <label for="cfg-syn-threshold">SYN Packet Threshold</label>
+                            <label for="cfg-syn-threshold">SYN Count Threshold</label>
                             <input type="number" id="cfg-syn-threshold" min="10" max="500" value="50">
                         </div>
                         <div class="form-field">
@@ -513,106 +670,51 @@
                     </div>
                     <div class="config-card">
                         <div class="config-card-header">
-                            <h4>RST/FIN Abuse Detector</h4>
+                            <h4>UDP Flood / DNS Amp</h4>
                             <span class="badge badge-yellow">Rule 3</span>
                         </div>
-                        <p class="config-desc">Detects malicious connection resets targeting critical services.</p>
+                        <p class="config-desc">Detects high-volume UDP bursts and amplification reflection.</p>
                         <div class="form-field">
-                            <label for="cfg-rst-threshold">Burst Threshold (packets)</label>
-                            <input type="number" id="cfg-rst-threshold" min="3" max="50" value="10">
-                        </div>
-                        <div class="form-field">
-                            <label for="cfg-rst-window">Time Window (seconds)</label>
-                            <input type="number" id="cfg-rst-window" min="1.0" max="30" step="0.5" value="5.0">
-                        </div>
-                    </div>
-                </div>
-            </section>
-            <section class="card" style="margin-top: 14px;">
-                <div class="card-header">
-                    <h3>Email Notifications</h3>
-                    <button class="btn btn-primary btn-sm" onclick="saveEmailSettings()">Save Email Settings</button>
-                </div>
-                <div class="config-grid">
-                    <div class="config-card">
-                        <div class="form-field">
-                            <label for="email-enabled">Enable Notifications</label>
-                            <select id="email-enabled"><option value="false">Disabled</option><option value="true">Enabled</option></select>
-                        </div>
-                        <div class="form-field">
-                            <label for="email-recipient">Recipient Email</label>
-                            <input type="email" id="email-recipient" placeholder="admin@example.com">
-                        </div>
-                        <div class="form-field">
-                            <label for="email-min-severity">Minimum Severity</label>
-                            <select id="email-min-severity">
-                                <option value="CRITICAL">Critical Only</option>
-                                <option value="HIGH" selected>High & Above</option>
-                                <option value="MEDIUM">Medium & Above</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="config-card">
-                        <div class="form-field">
-                            <label for="email-smtp-host">SMTP Host</label>
-                            <input type="text" id="email-smtp-host" value="smtp.gmail.com">
-                        </div>
-                        <div class="form-field">
-                            <label for="email-smtp-port">SMTP Port</label>
-                            <input type="number" id="email-smtp-port" value="587">
-                        </div>
-                        <div class="form-field">
-                            <label for="email-sender">Sender Email</label>
-                            <input type="email" id="email-sender" placeholder="netguard@gmail.com">
-                        </div>
-                        <div class="form-field">
-                            <label for="email-password">App Password</label>
-                            <input type="password" id="email-password" placeholder="Gmail App Password">
-                            <span class="form-hint">Use a Gmail App Password, not your regular password</span>
+                            <label for="cfg-udp-threshold">UDP Burst Threshold</label>
+                            <input type="number" id="cfg-udp-threshold" min="10" max="200" value="40">
                         </div>
                     </div>
                 </div>
             </section>
         </div>
 
-        <!-- TAB: REPORTS & EXPORT -->
+        <!-- ============================================================
+             SECONDARY VIEW: REPORTS & EXPORT
+             ============================================================ -->
         <div id="tab-export" class="tab-pane">
             <div class="page-title">
-                <h1>Reports & Export</h1>
-                <p>Download captured traffic and security audit logs</p>
+                <h1>Forensic Reports & PCAP Export</h1>
+                <p>Generate verifiable forensic deliverables for lab evaluations and security compliance</p>
             </div>
             <div class="export-grid">
                 <div class="card export-card">
                     <div class="export-icon export-icon-blue">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     </div>
-                    <h4>Wireshark PCAP</h4>
-                    <p class="export-desc">Download recent packet buffer in libpcap format.</p>
+                    <h4>Wireshark PCAP File</h4>
+                    <p class="export-desc">Download captured binary packets to open directly in Wireshark for deep forensic packet inspection.</p>
                     <a href="/api/export/pcap" class="btn btn-primary btn-sm" download="netguard_traffic.pcap">Download .pcap</a>
                 </div>
                 <div class="card export-card">
                     <div class="export-icon export-icon-green">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     </div>
-                    <h4>Security Audit CSV</h4>
-                    <p class="export-desc">Export all intrusion events as a spreadsheet.</p>
-                    <a href="/api/export/alerts/csv" class="btn btn-ghost btn-sm" download="netguard_alerts.csv">Export CSV</a>
+                    <h4>Security Alerts CSV</h4>
+                    <p class="export-desc">Export all flagged intrusions, timestamp records, severity ratings, and target details in CSV spreadsheet format.</p>
+                    <a href="/api/export/alerts/csv" class="btn btn-ghost btn-sm" download="netguard_alerts.csv">Download CSV</a>
                 </div>
                 <div class="card export-card">
                     <div class="export-icon export-icon-red">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                     </div>
-                    <h4>PDF Report</h4>
-                    <p class="export-desc">Executive summary with alert breakdown and top attackers.</p>
+                    <h4>Executive PDF Audit Report</h4>
+                    <p class="export-desc">Generate an executive incident summary with alert distributions, top attacker sources, and mitigation recommendations.</p>
                     <a href="/api/export/report/pdf" class="btn btn-primary btn-sm" download="netguard_report.pdf">Download PDF</a>
-                </div>
-                <div class="card export-card">
-                    <div class="export-icon export-icon-purple">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4"/></svg>
-                    </div>
-                    <h4>System Health JSON</h4>
-                    <p class="export-desc">Raw health endpoint with interface stats and queue depth.</p>
-                    <a href="/api/health" target="_blank" class="btn btn-ghost btn-sm">View /api/health</a>
                 </div>
             </div>
         </div>
@@ -620,27 +722,88 @@
       </div>
     </main>
 
+    <!-- ============================================================
+         MODALS & DRAWERS
+         ============================================================ -->
+
+    <!-- Educational Incident Explainer Modal -->
+    <div id="explain-modal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeExplainModal()"></div>
+        <div class="modal-window" style="max-width:760px">
+            <div class="modal-head">
+                <h3 id="explain-heading">🔍 Threat Mechanism & Defense Analysis</h3>
+                <button class="modal-close" onclick="closeExplainModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="explain-section">
+                    <h4 class="explain-title">⚡ What Happened (Attack Overview)</h4>
+                    <p id="explain-what" class="explain-text">--</p>
+                </div>
+                <div class="explain-section">
+                    <h4 class="explain-title">⚙️ Detection Heuristic & Trigger Criteria</h4>
+                    <p id="explain-trigger" class="explain-text">--</p>
+                </div>
+                <div class="explain-section">
+                    <h4 class="explain-title">💥 Real-World Threat Impact</h4>
+                    <p id="explain-impact" class="explain-text">--</p>
+                </div>
+                <div class="explain-section">
+                    <h4 class="explain-title">🛡️ Recommended Defense Architecture</h4>
+                    <p id="explain-defense" class="explain-text">--</p>
+                </div>
+                <div class="explain-section" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                    <div>
+                        <h4 class="explain-title" style="margin-bottom:2px;">🛡️ Active Defense & Forensic Capture</h4>
+                        <span style="font-size:11px;color:var(--text-muted);" id="explain-defense-status">SOAR policy ready for enforcement</span>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn-enforce" id="btn-enforce-block" onclick="enforceActiveDefense()">🚫 Enforce Kernel Block</button>
+                        <a id="btn-incident-pcap" href="#" class="btn-pcap" download="incident.pcap">💾 Download Incident PCAP</a>
+                    </div>
+                </div>
+                <div class="explain-section">
+                    <h4 class="explain-title">🔒 SOAR Automated Firewall Rules</h4>
+                    <div class="firewall-rules">
+                        <div class="fw-rule">
+                            <span class="fw-label">Linux (iptables)</span>
+                            <code id="fw-linux">--</code>
+                            <button class="btn-copy" onclick="copyRule('fw-linux')">Copy</button>
+                        </div>
+                        <div class="fw-rule">
+                            <span class="fw-label">Windows (netsh)</span>
+                            <code id="fw-windows">--</code>
+                            <button class="btn-copy" onclick="copyRule('fw-windows')">Copy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn btn-ghost btn-sm" onclick="closeExplainModal()">Close Analysis</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Packet Dissector Modal -->
     <div id="packet-dissector-modal" class="modal hidden">
         <div class="modal-overlay" onclick="closePacketModal()"></div>
         <div class="modal-window">
             <div class="modal-head">
-                <h3>Packet Header Dissector</h3>
+                <h3>Layer-by-Layer Packet Dissector</h3>
                 <button class="modal-close" onclick="closePacketModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="dissector-tree">
                     <div class="tree-node">
-                        <strong>Layer 2: Ethernet II</strong>
-                        <div class="tree-sub">Interface: <span id="dissect-iface">--</span> | Wire Length: <span id="dissect-len">--</span> bytes</div>
+                        <strong>Layer 2: Data Link Layer (Ethernet II)</strong>
+                        <div class="tree-sub">Interface: <span id="dissect-iface">--</span> | Wire Frame Length: <span id="dissect-len">--</span> bytes</div>
                     </div>
                     <div class="tree-node">
-                        <strong>Layer 3: Internet Protocol (IPv<span id="dissect-ipver">4</span>)</strong>
+                        <strong>Layer 3: Network Layer (Internet Protocol IPv<span id="dissect-ipver">4</span>)</strong>
                         <div class="tree-fields">
                             <div><span>Source IP:</span> <code id="dissect-srcip">--</code></div>
                             <div><span>Destination IP:</span> <code id="dissect-dstip">--</code></div>
                             <div><span>TTL:</span> <span id="dissect-ttl">--</span></div>
-                            <div><span>L4 Protocol:</span> <span id="dissect-proto">--</span></div>
+                            <div><span>Protocol ID:</span> <span id="dissect-proto">--</span></div>
                         </div>
                     </div>
                     <div class="tree-node" id="dissect-l4-node">
@@ -648,10 +811,10 @@
                         <div class="tree-fields">
                             <div><span>Source Port:</span> <span id="dissect-sport">--</span></div>
                             <div><span>Destination Port:</span> <span id="dissect-dport">--</span></div>
-                            <div><span>Flags:</span> <code id="dissect-flags">--</code></div>
+                            <div><span>Control Flags:</span> <code id="dissect-flags">--</code></div>
                             <div><span>Sequence Number:</span> <span id="dissect-seq">--</span></div>
-                            <div><span>Acknowledgement:</span> <span id="dissect-ack">--</span></div>
-                            <div><span>Window Size:</span> <span id="dissect-win">--</span></div>
+                            <div><span>Ack Number:</span> <span id="dissect-ack">--</span></div>
+                            <div><span>Window:</span> <span id="dissect-win">--</span></div>
                         </div>
                     </div>
                 </div>
@@ -662,44 +825,51 @@
         </div>
     </div>
 
-    <!-- Evidence Modal -->
+    <!-- Raw Evidence Modal -->
     <div id="evidence-modal" class="modal hidden">
         <div class="modal-overlay" onclick="closeModal()"></div>
         <div class="modal-window">
             <div class="modal-head">
-                <h3 id="modal-title">Intrusion Evidence</h3>
+                <h3 id="modal-title">Raw Incident Telemetry</h3>
                 <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="evidence-grid">
-                    <div class="evidence-item">
-                        <span class="evidence-label">Attack Type</span>
-                        <strong id="modal-type">--</strong>
-                    </div>
-                    <div class="evidence-item">
-                        <span class="evidence-label">Severity</span>
-                        <span id="modal-severity" class="tag">--</span>
-                    </div>
-                    <div class="evidence-item">
-                        <span class="evidence-label">Source IP</span>
-                        <code id="modal-src">--</code>
-                    </div>
-                    <div class="evidence-item">
-                        <span class="evidence-label">Target IP</span>
-                        <code id="modal-dst">--</code>
-                    </div>
+                    <div class="evidence-item"><span class="evidence-label">Type</span><strong id="modal-type">--</strong></div>
+                    <div class="evidence-item"><span class="evidence-label">Severity</span><span id="modal-severity" class="tag">--</span></div>
+                    <div class="evidence-item"><span class="evidence-label">Attacker</span><code id="modal-src">--</code></div>
+                    <div class="evidence-item"><span class="evidence-label">Target</span><code id="modal-dst">--</code></div>
                 </div>
                 <div class="evidence-block">
                     <span class="evidence-label">Summary</span>
                     <p id="modal-summary">--</p>
                 </div>
                 <div class="evidence-block">
-                    <span class="evidence-label">Forensic Telemetry</span>
+                    <span class="evidence-label">Raw Heuristic Dict</span>
                     <pre id="modal-json"><code>--</code></pre>
                 </div>
             </div>
             <div class="modal-foot">
                 <button class="btn btn-ghost btn-sm" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guided Tour Overlay -->
+    <div id="tour-overlay" class="tour-overlay hidden" style="display: none;" onclick="if (event.target === this) stopGuidedTour();">
+        <div class="tour-box">
+            <div class="tour-header">
+                <span class="tour-step-badge" id="tour-step-indicator">Step 1 of 6</span>
+                <button type="button" class="modal-close" onclick="stopGuidedTour()" title="Close Tour" aria-label="Close Tour">&times;</button>
+            </div>
+            <h3 class="tour-title" id="tour-step-title">Welcome to NetGuard SOC</h3>
+            <p class="tour-desc" id="tour-step-desc">This interactive tour will guide you through each component of the network intrusion detection system.</p>
+            <div class="tour-footer">
+                <button type="button" class="tour-btn tour-btn-ghost" id="tour-prev-btn" onclick="prevTourStep()">Previous</button>
+                <div style="display:flex;gap:8px;">
+                    <button type="button" class="tour-btn tour-btn-ghost" onclick="stopGuidedTour()">Skip Tour</button>
+                    <button type="button" class="tour-btn tour-btn-primary" id="tour-next-btn" onclick="nextTourStep()">Next Step &rarr;</button>
+                </div>
             </div>
         </div>
     </div>

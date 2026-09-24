@@ -234,3 +234,69 @@ class TrafficSimulator:
             "victim": dst_ip,
             "packets_sent": packet_count,
         }
+
+    def simulate_udp_flood(
+        self,
+        src_ip: str = "45.33.32.156",
+        dst_ip: str = "192.168.1.1",
+        target_port: int = 53,
+        packet_count: int = 50,
+    ) -> dict:
+        """Simulates a UDP Flood / DNS amplification attack."""
+        logger.info("Simulating UDP Flood: %s -> %s:%d (%d packets)", src_ip, dst_ip, target_port, packet_count)
+        now = time.time()
+        for i in range(packet_count):
+            pkt = PacketEvent(
+                ts=now + (i * 0.02),
+                src_ip=src_ip,
+                dst_ip=dst_ip,
+                ip_ver=4,
+                proto="UDP",
+                src_port=random.randint(1024, 65535),
+                dst_port=target_port,
+                length=random.randint(512, 4096),
+                info="DNS Response (Amplified)" if target_port == 53 else "UDP Flood Packet",
+                iface="simulation",
+            )
+            self.on_packet(pkt)
+            time.sleep(0.005)
+        return {
+            "attack": "UDP Flood",
+            "attacker": src_ip,
+            "victim": dst_ip,
+            "target_port": target_port,
+            "packets_sent": packet_count,
+        }
+
+    def simulate_dns_tunneling(
+        self,
+        src_ip: str = "192.168.1.145",
+        target_dns: str = "8.8.8.8",
+        query_count: int = 20,
+    ) -> dict:
+        """Simulates covert DNS tunneling and data exfiltration."""
+        logger.info("Simulating DNS Tunneling / Exfiltration: %s -> %s (%d queries)", src_ip, target_dns, query_count)
+        now = time.time()
+        for i in range(query_count):
+            encoded_chunk = f"chunk{i}.a8f9c1b3d7e502.corp-secrets.c2.attacker.com"
+            pkt = PacketEvent(
+                ts=now + (i * 0.08),
+                src_ip=src_ip,
+                dst_ip=target_dns,
+                ip_ver=4,
+                proto="UDP",
+                src_port=random.randint(40000, 65000),
+                dst_port=53,
+                length=random.randint(140, 280),
+                info=f"DNS Query TXT: {encoded_chunk}",
+                iface="simulation",
+            )
+            self.on_packet(pkt)
+            time.sleep(0.01)
+        return {
+            "attack": "DNS Tunneling",
+            "attacker": src_ip,
+            "dns_server": target_dns,
+            "queries_sent": query_count,
+            "technique": "Base64 DNS Subdomain Exfiltration",
+        }
